@@ -34,7 +34,7 @@ import static labs.pm.data.Rating.*;
  * @version 4.0
  * @author pc
  */
-public abstract class Product {
+public abstract class Product implements Rateable<Product>{
 
     /**
      * A constant that defines a {@link java.math.BigDecimal BigDecimal} value
@@ -81,11 +81,14 @@ public abstract class Product {
         return price.multiply(DISCOUNT_RATE).setScale(2, HALF_UP);
     }
 
+    @Override 
+    /*
+    @Override annotation shows that this class is overriding the method from the 
+    interface
+    */
     public Rating getRating() {
         return rating;
     }
-
-    public abstract Product applyRating(Rating newRating);
 
     @Override
     public String toString() {

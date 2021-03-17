@@ -22,8 +22,13 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -32,8 +37,9 @@ import java.util.ResourceBundle;
  */
 public class ProductManager {
 
-    private Product product;
-    private Review[] reviews = new Review[5];
+//    private Product product;
+//    private Review[] reviews = new Review[5];
+    private Map<Product, List<Review>> products = new HashMap<>();
     private Locale locale;
     private ResourceBundle resources;
     private DateTimeFormatter dateFormat;
@@ -49,14 +55,32 @@ public class ProductManager {
 
     public Product createProduct(int id, String name, BigDecimal price,
             Rating rating, LocalDate bestBefore) {
-        product = new Food(id, name, price, rating, bestBefore);
+        Product product = new Food(id, name, price, rating, bestBefore);
+        products.putIfAbsent(product, new ArrayList<>());
         return product;
     }
 
     public Product createProduct(int id, String name, BigDecimal price,
             Rating rating) {
-        product = new Drink(id, name, price, rating);
+        Product product = new Drink(id, name, price, rating);
+        products.putIfAbsent(product, new ArrayList<>());
         return product;
+    }
+    
+    /**
+     * This method performs Product search based on a product id value
+     * @param id
+     * @return a Product object
+     */
+    public Product findProduct(int id){
+        Product result = null;
+        for(Product product : products.keySet()){
+            if(product.getId() == id){
+                result = product;
+                break;
+            }
+        }
+        return result;
     }
 
     /*
@@ -67,64 +91,61 @@ public class ProductManager {
      */
     public Product reviewProduct(Product product, Rating rating,
             String comments) {
+        /*
+        Locate the entry in the HashMap that corresponds to the product and 
+        get from it, the list of reviews.
+         */
+        List<Review> reviews = products.get(product);
+        /*
+        Once the entry is located, remove it.
+         */
+        products.remove(product, reviews);
+        /*
+        Create a new review object and append it to the reviews list, using
+        rating and coments as parameters for the Review constructor
+         */
+        reviews.add(new Review(rating, comments));
+        /*
+        Iterate through the list of reviews and calculate the sum of all 
+        ratings.
+         */
+        int sum = 0;
 
-        /*
-        If the reviews array is full, increase the size of the array by 5
-        elements.
-         */
-        if (reviews[reviews.length - 1] != null) {
-            reviews = Arrays.copyOf(reviews, reviews.length + 5);
+        for (Review review : reviews) {
+            sum += review.getRating().ordinal();
         }
-        int sum = 0, i = 0;
         /*
-        The purpose of these variables is to compute the total number of stars
-        in all ratings and to count a number of ratings so that the average
-        rating value can be determined.
+        Caluculate the rating based on the average number of
+        ratings (sum/reviews.size())
          */
-        boolean reviewed = false;
-        /*
-        The purpose of this variable is to indicate if the review was
-        successfully added to the array of reviews and use it as a condition
-        to terminate iteration through this array.
+        product = product.applyRating(Rateable.convert(Math.round((float) sum
+                / reviews.size())));
+        /* 
+        Create a new product that is essentially a replica of the old one
+        but with a different rating
          */
-
- /*
-        This loop will continue to iterate until it reaches the end of the
-        array and check that the review has not yet been added to the array
-         */
-        while (i < reviews.length && !reviewed) {
-            /*
-            This if statement checks if an element in the array is null. If this
-            is the case, create a new Review object passing @rating and 
-            @comments parameters to the constructor, assign this review to the
-            current element in the reviews array, and set the reviewed variable
-            to be true, to indicate that no more iterations are required.
-             */
-            if (reviews[i] == null) {
-                reviews[i] = new Review(rating, comments);
-                reviewed = true;
-            }
-            /*
-            This statement adds the int stars value of Rating to the sum
-            variable.
-            It invokes the getRating method on a current reviews array object
-            and uses the ordinal method that is available for any enumeration
-            to achieve this.
-             */
-            sum += reviews[i].getRating().ordinal();
-            i++; //progress to the next iteration
-        }
-        this.product
-        = product.applyRating(Rateable.convert(Math.round((float) sum / i)));
-        /*
-        This new code caluculates the rating based on the average number of
-        ratings (sum/i)
-        */
-        return this.product;
+        products.put(product, reviews);
+        // Return the updated product
+        return product;
+    }
+    /*
+    Overloaded version of reviewProduct method that uses int id parameter and
+    locates the required product using findProduct method
+    */
+    public Product reviewProduct(int id, Rating rating, String comments) {
+        return reviewProduct(findProduct(id), rating, comments);
     }
 
+    /*
+    Overloaded version of printProduct method that uses int id parameter and 
+    locates the required product using findProduct method
+    */
+    public void printProductReport(int id) {
+        printProductReport(findProduct(id));
+    }
     //Creates, prepares and prints a report on a product and its review    
-    public void printProductReport() {
+    public void printProductReport(Product product) {
+        List<Review> reviews = products.get(product);
         StringBuilder txt = new StringBuilder();
         txt.append(MessageFormat.format(resources.getString("product"),
                 product.getName(),
@@ -132,19 +153,17 @@ public class ProductManager {
                 product.getRating().getStars(),
                 dateFormat.format(product.getBestBefore())));
         txt.append('\n');
+        Collections.sort(reviews);
         for (Review review : reviews) {
-            if (review == null) {
-                break;
-            }
             txt.append(MessageFormat.format(resources.getString("review"),
                     review.getRating().getStars(),
                     review.getComments()));
             txt.append('\n');
         }
-        if(reviews[0] == null){
+        if (reviews.isEmpty()) {
             txt.append(resources.getString("no.reviews"));
             txt.append('\n');
         }
-            System.out.println(txt);
+        System.out.println(txt);
     }
 }

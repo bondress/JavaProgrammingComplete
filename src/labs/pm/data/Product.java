@@ -98,8 +98,10 @@ public abstract class Product implements Rateable<Product>{
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 53 * hash + this.id;
+        //has was generated as 5
+        int hash = 5;
+        //statement was generated as 53 * hash + this.id
+        hash = 61 * hash + this.id;
         return hash;
     }
 
@@ -110,7 +112,7 @@ public abstract class Product implements Rateable<Product>{
         }
         if (obj instanceof Product) {
             final Product other = (Product) obj;
-            return this.id == other.id && Objects.equals(this.name, other.name);
+            return this.id == other.id;
         }
         return false;
     }

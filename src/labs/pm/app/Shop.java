@@ -88,25 +88,38 @@ public class Shop {
         p6 = pm.reviewProduct(106, Rating.THREE_STAR, "Better than cookie");
         p6 = pm.reviewProduct(106, Rating.TWO_STAR, "Too bitter");
         p6 = pm.reviewProduct(106, Rating.ONE_STAR, "I don't get it!");
-//        pm.printProductReport(106);
+        pm.printProductReport(106);
+        
+        /*
+        Testing new logic
+        Use forEach method to iterate through all Map entries returned by the 
+        getDiscounts method. Write a Lambda expression that implements
+        BiConsumer interface to handle the key-value pairs for each of the 
+        map entries, where teh key is the rating and value is the discount.
+        Print each rating value concatenated with tab "\t" character and then 
+        concatenated with the value of discount
+        */
+        pm.getDiscounts().forEach(
+        (rating, discount)->System.out.println(rating + "\t" + discount));
 
 //        //Lambda expression that orders products based on their ratings
 //        //Descending order
 //        //This expression ran successful although compiled with errors
-//        pm.printProducts((p1, p2) -> p2.getRating().ordinal()
-//                - p1.getRating().ordinal());
+        pm.printProducts(p -> p.getPrice().floatValue() < 2,
+                (p1, p2) -> p2.getRating().ordinal()
+                - p1.getRating().ordinal());
 //        //Lambda expression that orders products based on their prices
 //        //Descending order
 //        pm.printProducts((p1, p2) -> p2.getPrice().compareTo(p1.getPrice()));
-        
-        //Combining multiple Comparator objects
-        //This expression ran successful although compiled with errors
-        Comparator<Product> ratingSorter = (p1,p2) -> 
-                p2.getRating().ordinal() - p1.getRating().ordinal();
-        Comparator<Product> priceSorter = (p1,p2) -> 
-                p2.getPrice().compareTo(p1.getPrice());
-        pm.printProducts(ratingSorter.thenComparing(priceSorter));
-        pm.printProducts(ratingSorter.thenComparing(priceSorter).reversed());
+
+//        //Combining multiple Comparator objects
+//        //This expression ran successful although compiled with errors
+//        Comparator<Product> ratingSorter = (p1,p2) -> 
+//                p2.getRating().ordinal() - p1.getRating().ordinal();
+//        Comparator<Product> priceSorter = (p1,p2) -> 
+//                p2.getPrice().compareTo(p1.getPrice());
+//        pm.printProducts(ratingSorter.thenComparing(priceSorter));
+//        pm.printProducts(ratingSorter.thenComparing(priceSorter).reversed());
     }
 
 }
